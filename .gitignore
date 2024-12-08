@@ -1,0 +1,8 @@
+configs
+corpus
+training
+packages
+project.lock
+
+.venv
+__pycache__

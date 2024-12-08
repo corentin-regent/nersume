@@ -1,0 +1,40 @@
+title: Resume Named Entity Recognition
+description: An exploration project for the [Resume Entities for NER](https://www.kaggle.com/datasets/dataturks/resume-entities-for-ner) problem and dataset.
+
+vars:
+  raw_dataset: assets/dataset.jsonl
+  training_dataset: corpus/training.spacy
+  evaluation_dataset: corpus/evaluation.spacy
+  evaluation_ratio: 0.2
+  gpu_id: -1  # CPU
+
+directories:
+  - assets
+  - configs
+  - corpus
+  - metas
+  - metrics
+  - notebooks
+  - packages
+  - scripts
+  - training
+
+assets:
+  - dest: ${vars.raw_dataset}
+    description: Raw dataset from [Resume Entities for NER](https://www.kaggle.com/datasets/dataturks/resume-entities-for-ner)
+
+workflows:
+  all:
+    - prepare
+
+commands:
+  - name: prepare
+    help: Prepare the training and evaluation datasets
+    script:
+      - python scripts/prepare.py ${vars.raw_dataset} ${vars.training_dataset} ${vars.evaluation_dataset} --evaluation-ratio ${vars.evaluation_ratio}
+    deps:
+      - scripts/prepare.py
+      - ${vars.raw_dataset}
+    outputs:
+      - ${vars.training_dataset}
+      - ${vars.evaluation_dataset}

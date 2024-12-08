@@ -1,0 +1,22 @@
+{
+  "name": "corentin-regent/nersume",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "postCreateCommand": "scripts/install.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "explosion.spacy-extension",
+        "ms-python.python",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "python.analysis.packageIndexDepths": [
+          {
+            "name": "spacy",
+            "depth": 2
+          }
+        ]
+      }
+    }
+  }
+}
