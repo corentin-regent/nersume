@@ -5,7 +5,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "explosion.spacy-extension",
         "ms-python.python",
         "yzhang.markdown-all-in-one"
       ],

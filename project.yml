@@ -3,19 +3,15 @@ description: An exploration project for the [Resume Entities for NER](https://ww
 
 vars:
   raw_dataset: assets/dataset.jsonl
-  training_dataset: corpus/training.spacy
-  evaluation_dataset: corpus/evaluation.spacy
-  evaluation_ratio: 0.2
-  gpu_id: -1  # CPU
+  train_dataset: corpus/train.spacy
+  dev_dataset: corpus/dev.spacy
+  dev_ratio: 0.2
 
 directories:
   - assets
   - configs
   - corpus
-  - metas
   - metrics
-  - notebooks
-  - packages
   - scripts
   - training
 
@@ -26,15 +22,38 @@ assets:
 workflows:
   all:
     - prepare
+    - train
+    - evaluate
 
 commands:
   - name: prepare
-    help: Prepare the training and evaluation datasets
+    help: Prepare the train and dev datasets
     script:
-      - python scripts/prepare.py ${vars.raw_dataset} ${vars.training_dataset} ${vars.evaluation_dataset} --evaluation-ratio ${vars.evaluation_ratio}
+      - python scripts/prepare.py ${vars.raw_dataset} ${vars.train_dataset} ${vars.dev_dataset} --dev-ratio ${vars.dev_ratio}
     deps:
       - scripts/prepare.py
       - ${vars.raw_dataset}
     outputs:
-      - ${vars.training_dataset}
-      - ${vars.evaluation_dataset}
+      - ${vars.train_dataset}
+      - ${vars.dev_dataset}
+
+  - name: train
+    help: Train the model
+    script:
+      - spacy train configs/scratch_conv_xs.cfg --output training/scratch_conv_xs/
+    deps:
+      - configs/scratch_conv_xs.cfg
+      - ${vars.train_dataset}
+      - ${vars.dev_dataset}
+    outputs:
+      - training/scratch_conv_xs/model-best
+
+  - name: evaluate
+    help: Evaluate the model and export metrics
+    script:
+      - spacy evaluate training/scratch_conv_xs/model-best corpus/dev.spacy --output metrics/scratch_conv_xs.json
+    deps:
+      - ${vars.dev_dataset}
+      - training/scratch_conv_xs/model-best
+    outputs:
+      - metrics/scratch_conv_xs.json
