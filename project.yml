@@ -1,4 +1,4 @@
-title: Resume Named Entity Recognition & Span Categorization
+title: Resume Named Entity Recognition
 description: An exploration project for the [Resume Entities for NER](https://www.kaggle.com/datasets/dataturks/resume-entities-for-ner) dataset.
 
 vars:
@@ -52,10 +52,6 @@ workflows:
     - evaluate_pretrained_md_ner
     - evaluate_pretrained_lg_ner
     - evaluate_pretrained_trf_ner
-
-  # ner:
-
-  # spancat:
 
 commands:
   - name: prepare_ner
