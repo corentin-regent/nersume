@@ -1,19 +1,38 @@
-title: Resume Named Entity Recognition
-description: An exploration project for the [Resume Entities for NER](https://www.kaggle.com/datasets/dataturks/resume-entities-for-ner) problem and dataset.
+title: Resume Named Entity Recognition & Span Categorization
+description: An exploration project for the [Resume Entities for NER](https://www.kaggle.com/datasets/dataturks/resume-entities-for-ner) dataset.
 
 vars:
   raw_dataset: assets/dataset.jsonl
-  train_dataset: corpus/train.spacy
-  dev_dataset: corpus/dev.spacy
-  dev_ratio: 0.2
+
+  train_dataset_ner: corpus/ner/train.spacy
+  train_dataset_spancat: corpus/spancat/train.spacy
+  dev_dataset_ner: corpus/ner/dev.spacy
+  dev_dataset_spancat: corpus/spancat/dev.spacy
+
+  scratch_config_ner: configs/ner/scratch.cfg
+  scratch_output_ner: training/ner/scratch
+  scratch_metrics_ner: metrics/ner/scratch.json
+
+  pretrained_config_ner: configs/ner/pretrained.cfg
+  pretrained_sm_output_ner: training/ner/pretrained_sm
+  pretrained_sm_metrics_ner: metrics/ner/pretrained_sm.json
+  pretrained_md_output_ner: training/ner/pretrained_md
+  pretrained_md_metrics_ner: metrics/ner/pretrained_md.json
+  pretrained_lg_output_ner: training/ner/pretrained_lg
+  pretrained_lg_metrics_ner: metrics/ner/pretrained_lg.json
+  pretrained_trf_output_ner: training/ner/pretrained_trf
+  pretrained_trf_metrics_ner: metrics/ner/pretrained_trf.json
 
 directories:
-  - assets
-  - configs
   - corpus
+  - corpus/ner
+  - corpus/spancat
   - metrics
-  - scripts
+  - metrics/ner
+  - metrics/spancat
   - training
+  - training/ner
+  - training/spancat
 
 assets:
   - dest: ${vars.raw_dataset}
@@ -21,39 +40,142 @@ assets:
 
 workflows:
   all:
-    - prepare
-    - train
-    - evaluate
+    - prepare_ner
+    - prepare_spancat
+    - train_scratch_ner
+    - train_pretrained_sm_ner
+    - train_pretrained_md_ner
+    - train_pretrained_lg_ner
+    - train_pretrained_trf_ner
+    - evaluate_scratch_ner
+    - evaluate_pretrained_sm_ner
+    - evaluate_pretrained_md_ner
+    - evaluate_pretrained_lg_ner
+    - evaluate_pretrained_trf_ner
+
+  # ner:
+
+  # spancat:
 
 commands:
-  - name: prepare
-    help: Prepare the train and dev datasets
+  - name: prepare_ner
+    help: Prepare the train and dev datasets for NER
     script:
-      - python scripts/prepare.py ${vars.raw_dataset} ${vars.train_dataset} ${vars.dev_dataset} --dev-ratio ${vars.dev_ratio}
+      - python scripts/prepare.py ${vars.raw_dataset} ${vars.train_dataset_ner} ${vars.dev_dataset_ner} --is-ner
     deps:
       - scripts/prepare.py
       - ${vars.raw_dataset}
     outputs:
-      - ${vars.train_dataset}
-      - ${vars.dev_dataset}
+      - ${vars.train_dataset_ner}
+      - ${vars.dev_dataset_ner}
 
-  - name: train
-    help: Train the model
+  - name: prepare_spancat
+    help: Prepare the train and dev datasets for SpanCat
     script:
-      - spacy train configs/scratch_conv_xs.cfg --output training/scratch_conv_xs/
+      - python scripts/prepare.py ${vars.raw_dataset} ${vars.train_dataset_spancat} ${vars.dev_dataset_spancat}
     deps:
-      - configs/scratch_conv_xs.cfg
-      - ${vars.train_dataset}
-      - ${vars.dev_dataset}
+      - scripts/prepare.py
+      - ${vars.raw_dataset}
     outputs:
-      - training/scratch_conv_xs/model-best
+      - ${vars.train_dataset_spancat}
+      - ${vars.dev_dataset_spancat}
 
-  - name: evaluate
-    help: Evaluate the model and export metrics
+  - name: train_scratch_ner
+    help: Train the scratch model for NER
     script:
-      - spacy evaluate training/scratch_conv_xs/model-best corpus/dev.spacy --output metrics/scratch_conv_xs.json
+      - spacy train ${vars.scratch_config_ner} --output ${vars.scratch_output_ner}
     deps:
-      - ${vars.dev_dataset}
-      - training/scratch_conv_xs/model-best
+      - ${vars.scratch_config_ner}
+      - ${vars.train_dataset_ner}
     outputs:
-      - metrics/scratch_conv_xs.json
+      - ${vars.scratch_output_ner}
+
+  - name: train_pretrained_sm_ner
+    help: Train the pretrained small model for NER
+    script:
+      - spacy train ${vars.pretrained_config_ner} --output ${vars.pretrained_sm_output_ner} --components.tok2vec.source=en_core_web_sm
+    deps:
+      - ${vars.pretrained_config_ner}
+      - ${vars.train_dataset_ner}
+    outputs:
+      - ${vars.pretrained_sm_output_ner}
+
+  - name: train_pretrained_md_ner
+    help: Train the pretrained medium model for NER
+    script:
+      - spacy train ${vars.pretrained_config_ner} --output ${vars.pretrained_md_output_ner} --components.tok2vec.source=en_core_web_md --paths.vectors en_core_web_md
+    deps:
+      - ${vars.pretrained_config_ner}
+      - ${vars.train_dataset_ner}
+    outputs:
+      - ${vars.pretrained_md_output_ner}
+
+  - name: train_pretrained_lg_ner
+    help: Train the pretrained large model for NER
+    script:
+      - spacy train ${vars.pretrained_config_ner} --output ${vars.pretrained_lg_output_ner} --components.tok2vec.source=en_core_web_lg --paths.vectors en_core_web_lg
+    deps:
+      - ${vars.pretrained_config_ner}
+      - ${vars.train_dataset_ner}
+    outputs:
+      - ${vars.pretrained_lg_output_ner}
+
+  - name: train_pretrained_trf_ner
+    help: Train the pretrained transformer model for NER
+    script:
+      - spacy train ${vars.pretrained_config_ner} --output ${vars.pretrained_trf_output_ner} --components.tok2vec.source=en_core_web_trf --paths.vectors en_core_web_trf
+    deps:
+      - ${vars.pretrained_config_ner}
+      - ${vars.train_dataset_ner}
+    outputs:
+      - ${vars.pretrained_trf_output_ner}
+
+  - name: evaluate_scratch_ner
+    help: Evaluate the scratch model for NER
+    script:
+      - spacy evaluate ${vars.scratch_output_ner}/model-best ${vars.dev_dataset_ner} --output ${vars.scratch_metrics_ner}
+    deps:
+      - ${vars.scratch_output_ner}
+      - ${vars.dev_dataset_ner}
+    outputs:
+      - ${vars.scratch_metrics_ner}
+
+  - name: evaluate_pretrained_sm_ner
+    help: Evaluate the pretrained small model for NER
+    script:
+      - spacy evaluate ${vars.pretrained_sm_output_ner}/model-best ${vars.dev_dataset_ner} --output ${vars.pretrained_sm_metrics_ner}
+    deps:
+      - ${vars.pretrained_sm_output_ner}
+      - ${vars.dev_dataset_ner}
+    outputs:
+      - ${vars.pretrained_sm_metrics_ner}
+
+  - name: evaluate_pretrained_md_ner
+    help: Evaluate the pretrained medium model for NER
+    script:
+      - spacy evaluate ${vars.pretrained_md_output_ner}/model-best ${vars.dev_dataset_ner} --output ${vars.pretrained_md_metrics_ner}
+    deps:
+      - ${vars.pretrained_md_output_ner}
+      - ${vars.dev_dataset_ner}
+    outputs:
+      - ${vars.pretrained_md_metrics_ner}
+
+  - name: evaluate_pretrained_lg_ner
+    help: Evaluate the pretrained large model for NER
+    script:
+      - spacy evaluate ${vars.pretrained_lg_output_ner}/model-best ${vars.dev_dataset_ner} --output ${vars.pretrained_lg_metrics_ner}
+    deps:
+      - ${vars.pretrained_lg_output_ner}
+      - ${vars.dev_dataset_ner}
+    outputs:
+      - ${vars.pretrained_lg_metrics_ner}
+
+  - name: evaluate_pretrained_trf_ner
+    help: Evaluate the pretrained transformer model for NER
+    script:
+      - spacy evaluate ${vars.pretrained_trf_output_ner}/model-best ${vars.dev_dataset_ner} --output ${vars.pretrained_trf_metrics_ner}
+    deps:
+      - ${vars.pretrained_trf_output_ner}
+      - ${vars.dev_dataset_ner}
+    outputs:
+      - ${vars.pretrained_trf_metrics_ner}
